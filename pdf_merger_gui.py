@@ -1,5 +1,5 @@
 import os
-from tkinter import Tk, Label, Button, Entry, filedialog, messagebox
+from tkinter import Tk, Label, Button, Entry, filedialog, messagebox, StringVar, OptionMenu
 from PyPDF2 import PdfMerger
 
 def browse_directory():
@@ -9,10 +9,34 @@ def browse_directory():
         input_path_entry.delete(0, "end")
         input_path_entry.insert(0, directory)
 
+def order_files(file_list, sort_by="alphabetically"):
+    """
+    Sorts a list of files based on the user's choice.
+    
+    Args:
+        file_list (list): List of file paths.
+        sort_by (str): Sorting criteria. Options are:
+                       - "alphabetically"
+                       - "date_newest_first"
+                       - "date_oldest_first"
+                       
+    Returns:
+        list: Sorted list of file paths.
+    """
+    if sort_by == "alphabetically":
+        return sorted(file_list)
+    elif sort_by == "date_newest_first":
+        return sorted(file_list, key=os.path.getmtime, reverse=True)
+    elif sort_by == "date_oldest_first":
+        return sorted(file_list, key=os.path.getmtime)
+    else:
+        raise ValueError("Invalid sort_by option. Choose from 'alphabetically', 'date_newest_first', or 'date_oldest_first'.")
+
 def merge_pdfs():
     """Merge PDFs from the selected directory."""
     directory_path = input_path_entry.get()
     output_filename = output_name_entry.get()
+    sort_by = sort_by_var.get()  # Get the sort_by value from the drop-down
 
     if not directory_path or not os.path.isdir(directory_path):
         messagebox.showerror("Error", "Please select a valid directory.")
@@ -25,7 +49,7 @@ def merge_pdfs():
 
     try:
         merger = PdfMerger()
-        for filename in sorted(os.listdir(directory_path)):
+        for filename in order_files(os.listdir(directory_path), sort_by=sort_by):
             if filename.endswith(".pdf"):
                 file_path = os.path.join(directory_path, filename)
                 merger.append(file_path)
@@ -38,10 +62,10 @@ def merge_pdfs():
         messagebox.showerror("Error", f"An error occurred: {e}")
 
 if __name__ == "__main__":
-    # Creat GUI
+    # Create GUI
     root = Tk()
     root.title("PDF Merger")
-    root.geometry("500x300")
+    root.geometry("500x350")
 
     # App title
     title_label = Label(root, text="PDF Merger", font=("Helvetica", 16))
@@ -55,7 +79,15 @@ if __name__ == "__main__":
     browse_button = Button(root, text="Browse", command=browse_directory)
     browse_button.pack(padx=10, pady=5, anchor="w")
 
-    # Textbox for output file Name
+    # Sorting options drop-down
+    sort_by_label = Label(root, text="Sort Files By:")
+    sort_by_label.pack(anchor="w", padx=10)
+    sort_by_var = StringVar(value="alphabetically")  # Default option
+    sort_by_options = ["alphabetically", "date_newest_first", "date_oldest_first"]
+    sort_by_menu = OptionMenu(root, sort_by_var, *sort_by_options)
+    sort_by_menu.pack(padx=10, pady=5, anchor="w")
+
+    # Textbox for output file name
     output_name_label = Label(root, text="Output PDF Name:")
     output_name_label.pack(anchor="w", padx=10)
     output_name_entry = Entry(root, width=50)
