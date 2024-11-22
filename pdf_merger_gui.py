@@ -51,7 +51,7 @@ def merge_pdfs():
 
     try:
         merger = PdfMerger()
-        for filename in get_ordered_files(dir, sort_by=sort_by):
+        for filename in get_ordered_files(directory_path, sort_by=sort_by):
             if filename.endswith(".pdf"):
                 file_path = os.path.join(directory_path, filename)
                 merger.append(file_path)
