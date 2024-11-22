@@ -9,12 +9,12 @@ def browse_directory():
         input_path_entry.delete(0, "end")
         input_path_entry.insert(0, directory)
 
-def order_files(file_list, sort_by="alphabetically"):
+def get_ordered_files(dir, sort_by="alphabetically"):
     """
     Sorts a list of files based on the user's choice.
     
     Args:
-        file_list (list): List of file paths.
+        dir (str): Directory containing PDFs to merge.
         sort_by (str): Sorting criteria. Options are:
                        - "alphabetically"
                        - "date_newest_first"
@@ -23,12 +23,14 @@ def order_files(file_list, sort_by="alphabetically"):
     Returns:
         list: Sorted list of file paths.
     """
+    file_list = os.listdir(dir)
+    file_list_fp = [os.path.join(dir, file) for file in file_list]  # file_list but with full paths
     if sort_by == "alphabetically":
         return sorted(file_list)
     elif sort_by == "date_newest_first":
-        return sorted(file_list, key=os.path.getmtime, reverse=True)
+        return sorted(file_list_fp, key=os.path.getmtime, reverse=True)
     elif sort_by == "date_oldest_first":
-        return sorted(file_list, key=os.path.getmtime)
+        return sorted(file_list_fp, key=os.path.getmtime)
     else:
         raise ValueError("Invalid sort_by option. Choose from 'alphabetically', 'date_newest_first', or 'date_oldest_first'.")
 
@@ -49,7 +51,7 @@ def merge_pdfs():
 
     try:
         merger = PdfMerger()
-        for filename in order_files(os.listdir(directory_path), sort_by=sort_by):
+        for filename in get_ordered_files(os.listdir(directory_path), sort_by=sort_by):
             if filename.endswith(".pdf"):
                 file_path = os.path.join(directory_path, filename)
                 merger.append(file_path)
